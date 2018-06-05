@@ -6,7 +6,7 @@ service Release {
     // Get information about a release from its id
     rpc GetRelease(GetReleaseRequest) returns (Release) {};
     // List all releases matching the request
-    rpc ListReleases (ListReleasesRequest) returns (ListReleasesReponse) {};
+    rpc ListReleases (ListReleasesRequest) returns (ListReleasesResponse) {};
 }
 
 message GetReleaseRequest {
@@ -14,9 +14,8 @@ message GetReleaseRequest {
     ReleaseIdentifier release_id = 1;
 }
 
-
 message ListReleasesRequest {
-    // URL of the repo
+    // URL of the repository
     string repo_url = 1;
     // State of the release
     Status state = 2;
@@ -30,6 +29,11 @@ message ListReleasesRequest {
     uint32 max_count = 6;
 }
 
+message ListReleasesResponse {
+    // Release identifiers
+    repeated ReleaseIdentifier id = 1;
+}
+
 message ReleaseIdentifier {
     // URL of the repo
     string repo_url = 1;
@@ -37,39 +41,47 @@ message ReleaseIdentifier {
     string id = 2;
 }
 
-
 enum Status {
     // Default.
     UNUSED_STATUS = 0;
     // The Release is in progress.
     PENDING = 1;
-    // The Release is succesfull.
+    // The Release is succesful.
     COMPLETE = 2;
     // The Release could not complete and needs manual intervention.
     SUSPENDED = 3;
     // The Release has been abandoned.
     ABANDONED = 4;
 }
-
-enum Stage {
+enum TaskStatus {
     // Default.
     UNUSED_STATUS = 0;
-    // The Release is starting up.
-    INITIALIZING = 1;
-    // The Release is building.
-    BUILDING = 2;
-    // The Release is qualifying.
-    QUALIFYING = 3;
-    // Publishing artifacts.
-    PUBLISHING = 4;
-    // Release is being tagged
-    TAGGING = 5;
-    // Release is being marked as complete
-    FINALIZING = 6;
-    // Release is done
-    DONE = 7;
+    // Not started
+    NOT_STARTED = 1;
+    // The Release is in progress.
+    PENDING = 2;
+    // The Release is succesful.
+    COMPLETE = 3;
+    // The Release could not complete and needs manual intervention.
+    FAILED = 4;
 }
 
+message ReleaseTask {
+    // Task id
+    string id = 1;
+    // Name identifying the type of task
+    string name = 2;
+    // Time this release task was created
+    int64 started = 3;
+    // Last time this release task was modified
+    int64 last_modified = 4;
+    // Status of the task
+    TaskStatus status = 5;
+    // Error message extracted form the log
+    string error = 6;
+    // Link to log file
+    string log_url = 7;
+}
 
 message Release {
     // Release Id
@@ -80,8 +92,8 @@ message Release {
     string ref = 3;
     // State of the release
     Status state = 4;
-    // Last stage of the release in progress
-    Stage stage = 5;
+    // Information about the last taks in progress
+    string summary = 5;
     // Time this release was created
     int64 started = 6;
     // Last time this release was modified
@@ -90,12 +102,11 @@ message Release {
     string artifacts_link = 8;
     // When release is complete, a link to the release page
     string release_url = 9;
+    // Release tasks
+    repeated ReleaseTask tasks = 10;
 }
 
-message ListReleasesReponse {
-    // Release identifiers
-    repeated ReleaseIdentifier id = 1;
-}
+
 
 
 
